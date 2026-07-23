@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Investpesa</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #1e293b;
+    }
+    .register-box {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .logo {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #3b82f6;
+      margin-bottom: 10px;
+    }
+    .logo span { color: #0f172a; }
+    .subtitle { text-align: center; color: #64748b; margin-bottom: 30px; }
+    label { font-weight: 600; color: #334155; display: block; margin-bottom: 8px; font-size: 0.9rem; }
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 16px;
+    }
+    input:focus { border-color: #3b82f6; outline: none; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn:hover { background: #15803d; }
+    .links {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    .links a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+    .terms { font-size: 0.8rem; color: #64748b; margin: 10px 0 20px; }
+    .terms input { width: auto; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <div class="register-box">
+    <div class="logo">Invest<span>pesa</span></div>
+    <p class="subtitle">Create your account</p>
+
+    <form onsubmit="handleRegister(event)">
+      <div class="row">
+        <div>
+          <label>First Name</label>
+          <input type="text" id="fname" required>
+        </div>
+        <div>
+          <label>Last Name</label>
+          <input type="text" id="lname" required>
+        </div>
+      </div>
+
+      <label>Phone Number</label>
+      <input type="tel" id="phone" placeholder="07XX XXX" required>
+
+      <label>Email</label>
+      <input type="email" id="email" placeholder="you@email.com" required>
+
+      <div class="row">
+        <div>
+          <label>Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <div>
+          <label>Confirm Password</label>
+          <input type="password" id="cpassword" required>
+        </div>
+      </div>
+
+      <div class="terms">
+        <input type="checkbox" id="agree" required>
+        <label for="agree">I agree to Terms & Conditions</label>
+      </div>
+
+      <button type="submit" class="btn">Create Account</button>
+    </form>
+
+    <div class="links">
+      Already have an account? <a href="login.html">Login</a>
+    </div>
+  </div>
+
+  <script>
+    function handleRegister(e) {
+      e.preventDefault();
+      let pass = document.getElementById('password').value;
+      let cpass = document.getElementById('cpassword').value;
+      let phone = document.getElementById('phone').value;
+
+      if(pass !== cpass) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      if(phone.length < 10) {
+        alert('Enter valid phone number');
+        return;
+      }
+
+      // Save user to localStorage so dashboard can read it
+      localStorage.setItem('investpesa_user', JSON.stringify({
+        name: document.getElementById('fname').value,
+        phone: phone,
+        email: document.getElementById('email').value,
+        balance: 0
+      }));
+
+      alert('Account Created Successfully');
+      
+      // PUSH TO DASHBOARD
+      window.location.href = "dashboard.html";
+    }
+  </script>
+</body>
+  </html>
