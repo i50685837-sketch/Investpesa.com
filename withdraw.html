@@ -1,0 +1,7 @@
+<!DOCTYPE html><html><head><title>Withdraw</title><style>body{padding:20px;font-family:Arial}.btn{padding:14px;width:100%;margin-bottom:10px;border:none;border-radius:12px;color:white;font-weight:700;cursor:pointer}</style></head>
+<body><h2>🏦 Withdraw</h2>
+<button class="btn" style="background:#00A651" onclick="withd('M-Pesa',650)">Withdraw M-Pesa</button>
+<button class="btn" style="background:#003087" onclick="withd('PayPal',5)">Withdraw PayPal $5</button>
+<script>
+function withd(method,min){let amt=prompt(`Withdraw ${method}. Min ${min}`);let bal=parseInt(localStorage.getItem('bal'))||0;if(method=='PayPal')amt=amt*150;if(amt<=bal){localStorage.setItem('bal',bal-amt);alert('Withdraw request sent');location='wallet.html'}}
+</script></body></html>
