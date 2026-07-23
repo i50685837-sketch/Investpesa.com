@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Investpesa.com</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background: #f8fafc; color: #1e293b; scroll-behavior: smooth; }
+
+    .topbar { background: #0f172a; color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; }
+    .logo { font-size: 1.3rem; font-weight: 800; color: #3b82f6; }
+    .logo span { color: white; }
+    .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger span { width: 26px; height: 3px; background: white; border-radius: 2px; }
+
+    .sidebar { width: 280px; background: #0f172a; color: white; height: 100vh; position: fixed; left: -280px; top: 0; padding: 20px; transition: 0.3s; z-index: 1000; overflow-y: auto; }
+    .sidebar.active { left: 0; }
+    .sidebar h3 { margin-bottom: 20px; color: #3b82f6; }
+    .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 12px 10px; border-radius: 8px; margin-bottom: 6px; font-weight: 500; cursor: pointer; }
+    .sidebar a:hover { background: #1e293b; color: #3b82f6; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+    .overlay.active { display: block; }
+
+    .main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+
+    .top-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .btn { padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; color: white; font-size: 1rem; }
+    .btn-deposit { background: #16a34a; }
+    .btn-withdraw { background: #ef4444; }
+    .btn-invest { background: #3b82f6; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .card { background: white; padding: 18px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #3b82f6; }
+    .card h4 { color: #64748b; font-size: 0.85rem; margin-bottom: 6px; }
+    .card h2 { font-size: 1.3rem; }
+    .green { color: #16a34a; } .red { color: #ef4444; }
+
+    .box { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .box h2 { margin-bottom: 16px; }
+    .method-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .method-tab { padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; background: white; }
+    .method-tab.active { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+    .method-tab.withdraw-active { border-color: #ef4444; background: #fef2f2; color: #ef4444; }
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .form-section label { font-weight: 600; display: block; margin-bottom: 8px; font-size: 1rem; }
+    
+    /* BIGGER INPUT */
+    .form-section input, #investAmount {
+      width: 100%;
+      padding: 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .form-section button { width: 100%; padding: 14px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+    .btn-withdraw-submit { background: #ef4444; }
+    .note { font-size: 0.9rem; color: #64748b; margin-top: 8px; }
+
+    /* INVEST PLANS GRID */
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .plan-card {
+      background: linear-gradient(135deg, #f8fafc, #ffffff);
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .plan-card:hover { border-color: #3b82f6; transform: translateY(-3px); }
+    .plan-card.selected { border-color: #16a34a; background: #f0fdf4; }
+    .plan-card h3 { color: #3b82f6; margin-bottom: 8px; }
+
+    /* BIG INVEST BUTTON + TIMER */
+    .btn-invest-submit {
+      width: 100%;
+      padding: 20px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 1.3rem;
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    }
+    .verified-btn {
+      width: 100%;
+      padding: 20px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 1.3rem;
+    }
+    .timer-box {
+      text-align: center;
+      background: #eff6ff;
+      border: 2px dashed #3b82f6;
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 16px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+  <!-- HAMBURGER MENU - ALL FEATURES BACK -->
+  <div class="sidebar" id="sidebar">
+    <h3>Investpesa Menu</h3>
+    <a onclick="scrollToSection('dashboard')">📊 Dashboard</a>
+    <a onclick="scrollToSection('invest-box')">💼 Invest Funds</a>
+    <a onclick="scrollToSection('deposit')">💰 Deposit Funds</a>
+    <a onclick="scrollToSection('withdraw')">🏦 Withdraw Funds</a>
+    <a onclick="scrollToSection('history')">📋 Transaction History</a>
+    <a onclick="alert('Watchlist Coming Soon')">⭐ Watchlist</a>
+    <a onclick="alert('Auto-Invest Coming Soon')">🤖 Auto-Invest</a>
+    <a onclick="alert('Refer & Earn: Share your link to earn KES 500')">🎁 Refer & Earn KES 500</a>
+    <a onclick="alert('Tax Reports Coming Soon')">📑 Tax Reports</a>
+    <a onclick="alert('KYC Verification Coming Soon')">🛡️ KYC Verification</a>
+    <a onclick="alert('Notifications: No new alerts')">🔔 Notifications</a>
+    <a onclick="alert('Settings Page Coming Soon')">⚙️ Settings & Profile</a>
+    <a onclick="alert('Contact Support: +254 700 000 000')">❓ Help & Support</a>
+    <a href="index.html">🚪 Logout</a>
+  </div>
+
+  <div class="topbar">
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+    <div class="logo">Invest<span>pesa</span></div>
+    <div style="width:26px;"></div>
+  </div>
+
+  <div class="main" id="dashboard">
+    
+    <div class="top-actions">
+      <button class="btn btn-deposit" onclick="scrollToSection('deposit')">Deposit</button>
+      <button class="btn btn-withdraw" onclick="scrollToSection('withdraw')">Withdraw</button>
+      <button class="btn btn-invest" onclick="scrollToSection('invest-box')">Invest</button>
+    </div>
+
+    <div class="cards">
+      <div class="card"><h4>Account Balance</h4><h2 id="balance">KES 0.00</h2></div>
+      <div class="card"><h4>Active Investments</h4><h2 id="activeCount">0</h2></div>
+      <div class="card"><h4>Total Earned</h4><h2 class="green" id="totalEarned">KES 0.00</h2></div>
+      <div class="card"><h4>Min Invest</h4><h2>KES 650</h2></div>
+    </div>
+
+    <!-- INVEST BOX WITH LIST + TIMER -->
+    <div class="box" id="invest-box">
+      <h2>Choose Investment Plan - 32% in 3 Hours</h2>
+      <div class="plans-grid" id="plansGrid"></div>
+      <label>Selected Amount</label>
+      <input type="number" id="investAmount" placeholder="Tap a plan above to select" readonly>
+      <div id="investBtnContainer">
+        <button class="btn-invest-submit" onclick="investNow()">Invest Now</button>
+      </div>
+      <div id="timerContainer"></div>
+      <p class="note">Profit expected within 3 hours. Min: KES 650</p>
+    </div>
+
+    <!-- DEPOSIT BOX - PAYPAL + CRYPTO BACK -->
+    <div class="box" id="deposit">
+      <h2>Deposit Funds</h2>
+      <div class="method-tabs">
+        <div class="method-tab active" onclick="showDeposit('mpesa')">📱 M-Pesa</div>
+        <div class="method-tab" onclick="showDeposit('paypal')">💳 PayPal</div>
+        <div class="method-tab" onclick="showDeposit('crypto')">₿ Crypto</div>
+        <div class="method-tab" onclick="showDeposit('airtel')">📞 Airtel Money</div>
+      </div>
+
+      <div class="form-section active" id="deposit-mpesa">
+        <label>Phone Number</label>
+        <input type="tel" id="mpesaPhone" placeholder="07XX XXX">
+        <label>Amount</label>
+        <input type="number" id="mpesaAmount" placeholder="Min 405 - Max 20,000" min="405" max="20000">
+        <button onclick="depositMpesa()">Deposit with M-Pesa</button>
+      </div>
+
+      <div class="form-section" id="deposit-paypal">
+        <label>PayPal Email</label>
+        <input type="email" id="depositPaypalEmail" placeholder="your@email.com">
+        <label>Amount to Deposit USD</label>
+        <input type="number" id="depositPaypalAmount" placeholder="Min $4" min="4" max="200">
+        <button onclick="depositPaypal()">Deposit with PayPal</button>
+        <p class="note">Min: $4 | Max: $200 | 1 USD = KES 150</p>
+      </div>
+
+      <div class="form-section" id="deposit-crypto">
+        <label>Select Coin</label>
+        <input type="text" value="USDT TRC20" readonly>
+        <label>Amount USD</label>
+        <input type="number" id="cryptoAmount" placeholder="Min $10 - Max $500" min="10" max="500">
+        <button onclick="depositCrypto()">Get Wallet Address</button>
+        <p class="note">Min: $10 | Max: $500 | Network: TRC20</p>
+      </div>
+
+      <div class="form-section" id="deposit-airtel">
+        <label>Airtel Number</label>
+        <input type="tel" id="airtelPhone" placeholder="07XX XXX">
+        <label>Amount</label>
+        <input type="number" id="airtelAmount" placeholder="Min 405 - Max 20,000" min="405" max="20000">
+        <button onclick="depositAirtel()">Deposit with Airtel Money</button>
+      </div>
+    </div>
+
+    <!-- WITHDRAW BOX - PAYPAL BACK -->
+    <div class="box" id="withdraw">
+      <h2>Withdraw Funds</h2>
+      <div class="method-tabs">
+        <div class="method-tab withdraw-active" onclick="showWithdraw('mpesa')">📱 M-Pesa</div>
+        <div class="method-tab withdraw-active" onclick="showWithdraw('paypal')">💳 PayPal</div>
+        <div class="method-tab withdraw-active" onclick="showWithdraw('airtel')">📞 Airtel Money</div>
+      </div>
+
+      <div class="form-section active" id="withdraw-mpesa">
+        <label>Amount to Withdraw</label>
+        <input type="number" id="withdrawMpesaAmount" placeholder="Min 405" min="405">
+        <label>M-Pesa Number</label>
+        <input type="tel" id="withdrawMpesaPhone" placeholder="07XX XXX">
+        <button class="btn-withdraw-submit" onclick="withdrawMpesa()">Withdraw to M-Pesa</button>
+      </div>
+
+      <div class="form-section" id="withdraw-paypal">
+        <label>Amount to Withdraw USD</label>
+        <input type="number" id="withdrawPaypalAmount" placeholder="Min $5" min="5">
+        <label>PayPal Email</label>
+        <input type="email" id="withdrawPaypalEmail" placeholder="your@email.com">
+        <button class="btn-withdraw-submit" onclick="withdrawPaypal()">Withdraw to PayPal</button>
+        <p class="note">Min: $5. Processing 24hrs</p>
+      </div>
+
+      <div class="form-section" id="withdraw-airtel">
+        <label>Amount to Withdraw</label>
+        <input type="number" id="withdrawAirtelAmount" placeholder="Min 405" min="405">
+        <label>Airtel Number</label>
+        <input type="tel" id="withdrawAirtelPhone" placeholder="07XX XXX">
+        <button class="btn-withdraw-submit" onclick="withdrawAirtel()">Withdraw to Airtel</button>
+      </div>
+    </div>
+
+    <!-- TRANSACTION HISTORY -->
+    <div class="box" id="history">
+      <h2>Transaction History</h2>
+      <div id="historyList">No transactions yet</div>
+    </div>
+
+  </div>
+
+  <script>
+    let activeInvestments = 0;
+    let totalEarned = 0;
+    let transactions = [];
+    let selectedPlan = null;
+    let investmentTimer = null;
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('active');
+      document.getElementById('overlay').classList.toggle('active');
+    }
+    function closeMenu() {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('overlay').classList.remove('active');
+    }
+    function scrollToSection(id) {
+      document.getElementById(id).scrollIntoView();
+      closeMenu();
+    }
+
+    // INVESTMENT PLANS 650 TO 20000
+    const plans = [
+      {amount: 650, profit: 210}, {amount: 1000, profit: 320}, {amount: 1500, profit: 480},
+      {amount: 2000, profit: 640}, {amount: 3000, profit: 960}, {amount: 5000, profit: 1600},
+      {amount: 7000, profit: 2240}, {amount: 10000, profit: 3200}, {amount: 15000, profit: 4800},
+      {amount: 20000, profit: 6400},
+    ];
+
+    const grid = document.getElementById('plansGrid');
+    plans.forEach((p, i) => {
+      grid.innerHTML += `
+        <div class="plan-card" id="plan-${i}" onclick="selectPlan(${i}, ${p.amount}, ${p.profit})">
+          <h3>Plan ${i+1}</h3>
+          <p><b>Invest:</b> KES ${p.amount.toLocaleString()}</p>
+          <p class="green"><b>Profit:</b> KES ${p.profit.toLocaleString()}</p>
+          <p><b>Total:</b> KES ${(p.amount + p.profit).toLocaleString()}</p>
+          <p><b>Duration:</b> 3 Hours</p>
+        </div>
+      `;
+    });
+
+    function selectPlan(i, amount, profit) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById(`plan-${i}`).classList.add('selected');
+      document.getElementById('investAmount').value = amount;
+      selectedPlan = {amount, profit, i};
+    }
+
+    function investNow() {
+      if(!selectedPlan) { alert('Please select an investment plan first'); return; }
+      let amount = selectedPlan.amount;
+      let profit = selectedPlan.profit;
+      let balance = getBalance();
+      if(amount > balance) { alert('Insufficient balance. Deposit first'); return; }
+      
+      updateBalance(-amount);
+      activeInvestments++;
+      updateStats();
+      document.getElementById('investBtnContainer').innerHTML = `<button class="verified-btn">✅ Verified - Investment Active</button>`;
+      
+      let time = 10; // 10 sec demo. Change to 3*60*60 for 3 hours real
+      startTimer(time, amount, profit);
+      addTransaction('Invest', '3hr Plan', -amount);
+    }
+
+    function startTimer(seconds, amount, profit) {
+      let timerContainer = document.getElementById('timerContainer');
+      timerContainer.innerHTML = `<div class="timer-box" id="countdown">Time Left: 00:00:10</div>`;
+      investmentTimer = setInterval(() => {
+        let h = Math.floor(seconds / 3600);
+        let m = Math.floor((seconds % 3600) / 60);
+        let s = seconds % 60;
+        document.getElementById('countdown').innerText = `Time Left: ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        seconds--;
+        if(seconds < 0) {
+          clearInterval(investmentTimer);
+          timerContainer.innerHTML = `<div class="timer-box" style="background:#f0fdf4;border-color:#16a34a;color:#16a34a;">Completed! Profit Credited</div>`;
+          totalEarned += profit;
+          updateBalance(amount + profit);
+          activeInvestments--;
+          updateStats();
+          addTransaction('Profit', '3hr Plan', profit);
+          document.getElementById('investBtnContainer').innerHTML = `<button class="btn-invest-submit" onclick="investNow()">Invest Now</button>`;
+          document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+          document.getElementById('investAmount').value = '';
+          selectedPlan = null;
+        }
+      }, 1000);
+    }
+
+    // TABS
+    function showDeposit(method) {
+      document.querySelectorAll('#deposit .method-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#deposit .form-section').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('deposit-' + method).classList.add('active');
+    }
+    function showWithdraw(method) {
+      document.querySelectorAll('#withdraw .method-tab').forEach(t => t.classList.remove('withdraw-active'));
+      document.querySelectorAll('#withdraw .form-section').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('withdraw-active');
+      document.getElementById('withdraw-' + method).classList.add('active');
+    }
+
+    // DEPOSIT ALL 4 METHODS
+    function depositMpesa() {
+      let phone = document.getElementById('mpesaPhone').value;
+      let amount = parseInt(document.getElementById('mpesaAmount').value);
+      if(!phone || phone.length < 10) { alert('Enter valid phone number'); return; }
+      if(!amount || amount < 405) { alert('Minimum deposit is KES 405'); return; }
+      alert(`STK Push sent to ${phone} for KES ${amount}`);
+      updateBalance(amount);
+      addTransaction('Deposit', 'M-Pesa', amount);
+    }
+    function depositPaypal() {
+      let email = document.getElementById('depositPaypalEmail').value;
+      let amount = parseFloat(document.getElementById('depositPaypalAmount').value);
+      if(!email || !email.includes('@')) { alert('Enter valid PayPal email'); return; }
+      if(!amount || amount < 4) { alert('Minimum deposit is $4'); return; }
+      let kesAmount = amount * 150;
+      alert(`Redirecting to PayPal for $${amount}`);
+      updateBalance(kesAmount);
+      addTransaction('Deposit', 'PayPal', kesAmount);
+    }
+    function depositCrypto() {
+      let amount = parseFloat(document.getElementById('cryptoAmount').value);
+      if(!amount || amount < 10) { alert('Minimum deposit is $10'); return; }
+      alert(`Send $${amount} USDT TRC20 to: TQxxxxxWalletAddress`);
+      let kesAmount = amount * 150;
+      updateBalance(kesAmount);
+      addTransaction('Deposit', 'Crypto', kesAmount);
+    }
+    function depositAirtel() {
+      let phone = document.getElementById('airtelPhone').value;
+      let amount = parseInt(document.getElementById('airtelAmount').value);
+      if(!phone || phone.length < 10) { alert('Enter valid Airtel number'); return; }
+      if(!amount || amount < 405) { alert('Minimum deposit is KES 405'); return; }
+      alert(`Airtel Money request sent to ${phone} for KES ${amount}`);
+      updateBalance(amount);
+      addTransaction('Deposit', 'Airtel', amount);
+    }
+
+    // WITHDRAW ALL 3 METHODS
+    function withdrawMpesa() {
+      let amount = parseInt(document.getElementById('withdrawMpesaAmount').value);
+      let phone = document.getElementById('withdrawMpesaPhone').value;
+      let balance = getBalance();
+      if(!amount || amount < 405) { alert('Minimum withdraw is KES 405'); return; }
+      if(amount > balance) { alert('Insufficient balance'); return; }
+      alert(`Withdraw request: KES ${amount} to ${phone}`);
+      updateBalance(-amount);
+      addTransaction('Withdraw', 'M-Pesa', -amount);
+    }
+    function withdrawPaypal() {
+      let amount = parseFloat(document.getElementById('withdrawPaypalAmount').value);
+      let email = document.getElementById('withdrawPaypalEmail').value;
+      let balance = getBalance();
+      let kesAmount = amount * 150;
+      if(!amount || amount < 5) { alert('Minimum withdraw is $5'); return; }
+      if(kesAmount > balance) { alert('Insufficient balance'); return; }
+      alert(`Withdraw request: $${amount} to ${email}`);
+      updateBalance(-kesAmount);
+      addTransaction('Withdraw', 'PayPal', -kesAmount);
+    }
+    function withdrawAirtel() {
+      let amount = parseInt(document.getElementById('withdrawAirtelAmount').value);
+      let phone = document.getElementById('withdrawAirtelPhone').value;
+      let balance = getBalance();
+      if(!amount || amount < 405) { alert('Minimum withdraw is KES 405'); return; }
+      if(amount > balance) { alert('Insufficient balance'); return; }
+  
