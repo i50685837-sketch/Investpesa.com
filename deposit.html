@@ -1,0 +1,9 @@
+<!DOCTYPE html><html><head><title>Deposit</title><style>body{padding:20px;font-family:Arial}.btn{padding:14px;width:100%;margin-bottom:10px;border:none;border-radius:12px;color:white;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer}</style></head>
+<body><h2>💰 Deposit Funds</h2>
+<button class="btn" style="background:#00A651" onclick="dep('M-Pesa',405)">M-Pesa Min 405</button>
+<button class="btn" style="background:#003087" onclick="dep('PayPal',4)">PayPal USD Min $4</button>
+<button class="btn" style="background:#F7931A" onclick="dep('Crypto',10)">Crypto USDT Min $10</button>
+<button class="btn" style="background:#DC143C" onclick="dep('Airtel',405)">Airtel Min 405</button>
+<script>
+function dep(method,min){let amt=prompt(`Deposit ${method}. Min ${min}`);if(amt){let bal=parseInt(localStorage.getItem('bal'))||0;if(method=='PayPal'||method=='Crypto')amt=amt*150;localStorage.setItem('bal',bal+parseInt(amt));alert('Deposited!');location='wallet.html'}}
+</script></body></html>
