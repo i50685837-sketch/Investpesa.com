@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction History - Investpesa</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{background:#f8fafc}
+.topbar{background:#0f172a;color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1001}
+.hamburger{display:flex;flex-direction:column;gap:5px;cursor:pointer}
+.hamburger span{width:26px;height:3px;background:white;border-radius:2px}
+.sidebar{width:280px;background:#0f172a;color:white;height:100vh;position:fixed;right:-280px;top:0;padding:20px;transition:0.3s;z-index:1000;overflow-y:auto}
+.sidebar.active{right:0}.sidebar a{display:block;color:#cbd5e1;padding:12px;text-decoration:none;border-radius:8px;margin-bottom:6px;cursor:pointer}
+.sidebar a:hover{background:#1e293b;color:#3b82f6}.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999}
+.overlay.active{display:block}.main{padding:20px;max-width:1200px;margin:0 auto}
+.box{background:white;padding:20px;border-radius:16px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter button{padding:10px 16px;border:2px solid #e2e8f0;background:white;border-radius:10px;font-weight:600;cursor:pointer}
+.filter button.active{background:#3b82f6;color:white;border-color:#3b82f6}
+.transaction{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.transaction:hover{background:#f8fafc}
+.transaction.left{display:flex;gap:12px;align-items:center}
+.icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.deposit{background:#f0fdf4}.invest{background:#eff6ff}.withdraw{background:#fef2f2}.profit{background:#ecfdf5}
+.amount{font-weight:800;font-size:1.1rem}
+.green{color:#16a34a}.red{color:#ef4444}.blue{color:#3b82f6}
+
+/* DETAILS MODAL */
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center}
+.modal.active{display:flex}.modal-box{background:white;padding:20px;border-radius:16px;width:90%;max-width:400px}
+.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<div class="sidebar" id="sidebar">
+<h3 style="color:#3b82f6;margin-bottom:20px">Menu</h3>
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="invest.html">📈 Invest</a>
+<a href="deposit.html">💰 Deposit</a>
+<a href="withdraw.html">🏦 Withdraw</a>
+<a href="transaction.html">📋 Transactions</a>
+<a href="wallet.html">👛 Wallet</a>
+<a onclick="alert('Settings')">⚙️ Settings</a>
+<a href="index.html">🚪 Logout</a>
+</div>
+
+<div class="topbar">
+<div style="font-size:1.3rem;font-weight:800">Invest<span style="color:#3b82f6">pesa</span></div>
+<div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+</div>
+
+<div class="main">
+<div class="box">
+<h2>Transaction History</h2>
+<p style="color:#64748b;margin-bottom:16px">Total: <span id="totalCount">0</span> transactions</p>
+
+<div class="filter">
+<button class="active" onclick="filterTrans('all',this)">All</button>
+<button onclick="filterTrans('deposit',this)">Deposit</button>
+<button onclick="filterTrans('withdraw',this)">Withdraw</button>
+<button onclick="filterTrans('invest',this)">Invest</button>
+<button onclick="filterTrans('profit',this)">Profit</button>
+</div>
+
+<div id="transactionList"></div>
+</div>
+</div>
+
+<!-- TRANSACTION DETAIL MODAL -->
+<div class="modal" id="detailModal">
+<div class="modal-box">
+<h3>Transaction Details</h3>
+<div id="detailContent"></div>
+<button onclick="closeModal()" style="width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:10px;margin-top:16px;font-weight:700">Close</button>
+</div>
+</div>
+
+<script>
+function toggleMenu(){document.getElementById('sidebar').classList.toggle('active');document.getElementById('overlay').classList.toggle('active')}
+function closeModal(){document.getElementById('detailModal').classList.remove('active')}
+
+let allTransactions = JSON.parse(localStorage.getItem('investpesa_transactions')) || [];
+
+// If empty, add demo data
+if(allTransactions.length === 0){
+  allTransactions = [
+    {type:'deposit', method:'M-Pesa', amount:5000, status:'Success', time:new Date().toLocaleString(), id:'TXN'+Date.now()},
+    {type:'invest', method:'Plan 3', amount:-2000, status:'Active', time:new Date().toLocaleString(), id:'INV'+Date.now()},
+    {type:'profit', method:'Plan 3', amount:640, status:'Completed', time:new Date().toLocaleString(), id:'PRF'+Date.now()},
+    {type:'withdraw', method:'PayPal', amount:-3000, status:'Processing', time:new Date().toLocaleString(), id:'WTH'+Date.now()},
+  ]
+  localStorage.setItem('investpesa_transactions', JSON.stringify(allTransactions))
+}
+
+function renderTransactions(filter='all'){
+  let list = document.getElementById('transactionList');
+  let filtered = filter === 'all'? allTransactions : allTransactions.filter(t => t.type === filter);
+  document.getElementById('totalCount').innerText = filtered.length;
+
+  if(filtered.length === 0){
+    list.innerHTML = '<p style="text-align:center;color:#64748b;padding:40px">No transactions yet</p>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((t,i) => {
+    let icon = t.type === 'deposit'? '💰' : t.type === 'withdraw'? '🏦' : t.type === 'invest'? '📈' : '🎁';
+    let color = t.type === 'deposit'? 'deposit' : t.type === 'withdraw'? 'withdraw' : t.type === 'invest'? 'invest' : 'profit';
+    let amountColor = t.amount > 0? 'green' : 'red';
+    let amountText = t.amount > 0? `+KES ${Math.abs(t.amount).toLocaleString()}` : `-KES ${Math.abs(t.amount).toLocaleString()}`;
+
+    return `
+    <div class="transaction" onclick="showDetail(${i})">
+      <div class="left">
+        <div class="icon ${color}">${icon}</div>
+        <div>
+          <div style="font-weight:700">${t.type.charAt(0).toUpperCase() + t.type.slice(1)} - ${t.method}</div>
+          <div style="font-size:0.85rem;color:#64748b">${t.time}</div>
+          <div style="font-size:0.8rem;color:#64748b">ID: ${t.id}</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="amount ${amountColor}">${amountText}</div>
+        <div style="font-size:0.8rem;color:#64748b">${t.status}</div>
+      </div>
+    </div>
+    `
+  }).join('');
+}
+
+function filterTrans(type,btn){
+  document.querySelectorAll('.filter button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTransactions(type);
+}
+
+function showDetail(index){
+  let t = allTransactions[index];
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-row"><span>Type</span><span style="font-weight:700">${t.type}</span></div>
+    <div class="detail-row"><span>Method</span><span style="font-weight:700">${t.method}</span></div>
+    <div class="detail-row"><span>Amount</span><span style="font-weight:700;color:${t.amount>0?'#16a34a':'#ef4444'}">KES ${Math.abs(t.amount).toLocaleString()}</span></div>
+    <div class="detail-row"><span>Status</span><span style="font-weight:700">${t.status}</span></div>
+    <div class="detail-row"><span>Date & Time</span><span style="font-weight:700">${t.time}</span></div>
+    <div class="detail-row"><span>Transaction ID</span><span style="font-weight:700">${t.id}</span></div>
+  `;
+  document.getElementById('detailModal').classList.add('active');
+}
+
+// Add new transaction function - call this from dashboard
+function addTransaction(type, method, amount){
+  let newTx = {
+    type:type,
+    method:method,
+    amount:amount,
+    status:'Success',
+    time:new Date().toLocaleString(),
+    id:type.toUpperCase()+Date.now()
+  }
+  allTransactions.unshift(newTx);
+  localStorage.setItem('investpesa_transactions', JSON.stringify(allTransactions));
+  renderTransactions();
+}
+
+renderTransactions();
+</script>
+</body>
+  </html>
