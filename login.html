@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Investpesa</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #1e293b;
+    }
+    .login-box {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .logo {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #3b82f6;
+      margin-bottom: 10px;
+    }
+    .logo span { color: #0f172a; }
+    .subtitle { text-align: center; color: #64748b; margin-bottom: 30px; }
+    label { font-weight: 600; color: #334155; display: block; margin-bottom: 8px; }
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    input:focus { border-color: #3b82f6; outline: none; }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:hover { background: #2563eb; }
+    .links {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    .links a { color: #3b82f6; text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">Invest<span>pesa</span></div>
+    <p class="subtitle">Login to your account</p>
+
+    <form onsubmit="handleLogin(event)">
+      <label>Phone or Email</label>
+      <input type="text" id="username" placeholder="07XX XXX XXX" required>
+
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password" required>
+
+      <button type="submit" class="btn">Login</button>
+    </form>
+
+    <div class="links">
+      <a href="#" onclick="alert('Reset link sent')">Forgot Password?</a>
+      <a href="#" onclick="alert('Register Page Coming')">Create Account</a>
+    </div>
+  </div>
+
+  <script>
+    function handleLogin(e) {
+      e.preventDefault();
+      let user = document.getElementById('username').value;
+      let pass = document.getElementById('password').value;
+
+      if(user === "" || pass === "") {
+        alert('Please fill all fields');
+        return;
+      }
+
+      // PUSH TO DASHBOARD
+      window.location.href = "dashboard.html";
+    }
+  </script>
+</body>
+</html>
