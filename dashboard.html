@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investpesa Dashboard</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{background:#f8fafc}.topbar{background:#0f172a;color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1001}
+.hamburger{display:flex;flex-direction:column;gap:5px;cursor:pointer}.hamburger span{width:26px;height:3px;background:white}
+.sidebar{width:280px;background:#0f172a;color:white;height:100vh;position:fixed;right:-280px;top:0;padding:20px;transition:0.3s;z-index:1000;overflow-y:auto}
+.sidebar.active{right:0}.sidebar a{display:block;color:#cbd5e1;padding:12px;text-decoration:none;border-radius:8px;margin-bottom:6px;cursor:pointer}
+.sidebar a:hover{background:#1e293b;color:#3b82f6}.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999}
+.overlay.active{display:block}.main{padding:20px;max-width:1200px;margin:0 auto}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.card{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.box{background:white;padding:20px;border-radius:16px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.btn{padding:14px;border:none;border-radius:12px;font-weight:700;color:white;width:100%;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-size:1rem}
+.btn img{width:24px;height:24px}
+table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid #f1f5f9;text-align:left}
+input,select{width:100%;padding:18px;border:2px solid #e2e8f0;border-radius:12px;font-size:1.1rem;margin-bottom:16px}
+.green{color:#16a34a}.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center}
+.modal.active{display:flex}.modal-box{background:white;padding:20px;border-radius:16px;width:90%;max-width:400px}
+</style></head><body>
+
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<div class="sidebar" id="sidebar">
+<h3 style="color:#3b82f6;margin-bottom:20px">Investpesa Menu</h3>
+<a onclick="scrollTo('dashboard')">📊 Dashboard Home</a>
+<a onclick="scrollTo('plans')">📈 Investment Plans</a>
+<a onclick="scrollTo('calculator')">🧮 Calculator</a>
+<a onclick="scrollTo('deposit')">💰 Deposit Funds</a>
+<a onclick="scrollTo('withdraw')">🏦 Withdraw Funds</a>
+<a onclick="scrollTo('graph')">📊 Live Graph</a>
+<a onclick="scrollTo('history')">📋 Transaction History</a>
+<a onclick="alert('Settings Coming Soon')">⚙️ Settings</a>
+<a onclick="localStorage.clear();location.href='index.html'">🚪 Logout</a>
+</div>
+
+<div class="topbar"><div style="font-size:1.3rem;font-weight:800">Invest<span style="color:#3b82f6">pesa</span></div><div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div></div>
+
+<div class="main" id="dashboard">
+<div class="cards">
+<div class="card"><h4>Account Balance</h4><h2 id="bal">KES 0</h2></div>
+<div class="card"><h4>Active Invest</h4><h2 id="active">0</h2></div>
+<div class="card"><h4>Total Earned</h4><h2 class="green" id="earned">KES 0</h2></div>
+</div>
+
+<div class="box" id="plans"><h2>Investment Plans - 32% Profit in 3 Hours</h2>
+<table><thead><tr><th>Plan</th><th>Invest</th><th>Profit</th><th>Action</th></tr></thead><tbody id="planTable"></tbody></table></div>
+
+<div class="box" id="calculator"><h2>Investment Calculator</h2>
+<input type="number" id="calcInput" placeholder="Enter amount min 650" oninput="calculate()">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:#eff6ff;padding:16px;border-radius:12px;text-align:center"><p>Invest</p><h3 id="calcInvest">KES 0</h3></div>
+<div style="background:#f0fdf4;padding:16px;border-radius:12px;text-align:center"><p>Profit 32%</p><h3 class="green" id="calcProfit">KES 0</h3></div>
+</div>
+<button class="btn" style="background:#3b82f6;margin-top:12px" onclick="investFromCalc()">Invest This Amount</button>
+</div>
+
+<div class="box" id="graph"><h2>Live Graph: Investment Growth</h2><div id="liveChart" style="height:300px"></div></div>
+
+<div class="box" id="deposit"><h2>Deposit Funds</h2>
+<button class="btn" style="background:#00A651" onclick="openDeposit('M-Pesa','https://cdn-icons-png.flaticon.com/512/5968/5968290.png')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968290.png"> M-Pesa</button>
+<button class="btn" style="background:#003087" onclick="openDeposit('PayPal','https://cdn-icons-png.flaticon.com/512/5968/5968705.png')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968705.png"> PayPal USD</button>
+<button class="btn" style="background:#F7931A" onclick="openDeposit('Crypto','https://cdn-icons-png.flaticon.com/512/5968/5968260.png')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968260.png"> Crypto</button>
+<button class="btn" style="background:#DC143C" onclick="openDeposit('Airtel','https://cdn-icons-png.flaticon.com/512/5968/5968709.png')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968709.png"> Airtel Money</button>
+</div>
+
+<div class="box" id="withdraw"><h2>Withdraw Funds</h2>
+<button class="btn" style="background:#00A651" onclick="openWithdraw('M-Pesa')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968290.png"> Withdraw M-Pesa Min KES 650</button>
+<button class="btn" style="background:#003087" onclick="openWithdraw('PayPal')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968705.png"> Withdraw PayPal Min $5</button>
+<button class="btn" style="background:#DC143C" onclick="openWithdraw('Airtel')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968709.png"> Withdraw Airtel Min KES 650</button>
+<button class="btn" style="background:#F7931A" onclick="openWithdraw('Crypto')"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968260.png"> Withdraw Crypto</button>
+</div>
+
+<div class="box" id="history"><h2>Transaction History</h2><div id="hist"></div></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="depositModal"><div class="modal-box"><h3 id="depTitle"></h3><div id="depBody"></div><button class="btn" style="background:#16a34a" onclick="submitDeposit()">Deposit Now</button><button onclick="closeModal()" style="width:100%;padding:12px;margin-top:8px">Cancel</button></div></div>
+<div class="modal" id="withdrawModal"><div class="modal-box"><h3 id="withTitle"></h3><div id="withBody"></div><button class="btn" style="background:#ef4444" onclick="submitWithdraw()">Withdraw Now</button><button onclick="closeModal()" style="width:100%;padding:12px;margin-top:8px">Cancel</button></div></div>
+
+<script>
+let bal=parseInt(localStorage.getItem('bal'))||0;let earned=0;let active=0;let hist=[];
+let chart,series;let currentMethod='';
+
+function toggleMenu(){document.getElementById('sidebar').classList.toggle('active');document.getElementById('overlay').classList.toggle('active')}
+function scrollTo(id){document.getElementById(id).scrollIntoView({behavior:'smooth'});toggleMenu()}
+function closeModal(){document.getElementById('depositModal').classList.remove('active');document.getElementById('withdrawModal').classList.remove('active')}
+
+const plans=[{n:1,a:650,p:210},{n:2,a:1000,p:320},{n:3,a:1500,p:480},{n:4,a:2000,p:640},{n:5,a:3000,p:960},{n:6,a:5000,p:1600},{n:7,a:7000,p:2240},{n:8,a:10000,p:3200},{n:9,a:15000,p:4800},{n:10,a:20000,p:6400}];
+plans.forEach(p=>{document.getElementById('planTable').innerHTML+=`<tr><td>Plan ${p.n}</td><td>KES ${p.a.toLocaleString()}</td><td class="green">+KES ${p.p.toLocaleString()}</td><td><button onclick="invest(${p.a},${p.p})" style="background:#3b82f6;color:white;border:none;padding:8px 12px;border-radius:6px;font-weight:700">Invest</button></td></tr>`})
+
+function invest(a,p){if(a>bal){alert('Insufficient balance. Deposit first');return}bal-=a;active++;addHist(`Invested KES ${a}`);update();startGraph(a,p)}
+function startGraph(amount,profit){let data=[{time:0,value:amount}];let t=0;let int=setInterval(()=>{t+=0.1;data.push({time:parseFloat(t.toFixed(1)),value:amount+(profit*t/3)});series.setData(data);if(t>=3){clearInterval(int);bal+=amount+profit;earned+=profit;active--;addHist(`Profit KES ${profit} Credited`);update()}},500)}
+
+function calculate(){let val=parseInt(document.getElementById('calcInput').value)||0;document.getElementById('calcInvest').innerText='KES '+val.toLocaleString();document.getElementById('calcProfit').innerText='KES '+(Math.floor(val*0.32)).toLocaleString()}
+function investFromCalc(){let val=parseInt(document.getElementById('calcInput').value)||0;if(val<650){alert('Min investment KES 650');return}let profit=Math.floor(val*0.32);invest(val,profit)}
+
+// DEPOSIT WITH LOGOS + PAYPAL EMAIL + CRYPTO WALLET SELECT
+function openDeposit(m,logo){currentMethod=m;document.getElementById('depTitle').innerHTML=`<img src="${logo}" style="width:24px"> Deposit ${m}`;
+let body=`<input id="depAmount" type="number" placeholder="Amount">`;
+if(m=='M-Pesa'||m=='Airtel')body+=`<input id="depPhone" placeholder="Phone 07XX XXX">`;
+if(m=='PayPal')body+=`<input id="depEmail" placeholder="PayPal Email Address"><p style="font-size:0.9rem;color:#64748b">1 USD = KES 150</p>`; // PAYPAL USES EMAIL + DOLLARS
+if(m=='Crypto')body+=`<select id="cryptoWallet"><option>USDT TRC20</option><option>BTC</option><option>ETH</option></select><p>Send to wallet address shown after deposit</p>`; // CRYPTO WALLET SELECT
+document.getElementById('depBody').innerHTML=body;document.getElementById('depositModal').classList.add('active')}
+
+function submitDeposit(){
+  let amt=parseFloat(document.getElementById('depAmount').value);
+  if(currentMethod=='PayPal'){ amt = amt * 150 } // Convert USD to KES
+  if(amt>=405){bal+=amt;addHist(`Deposited KES ${amt.toLocaleString()} via ${currentMethod}`);update();closeModal()}else alert('Min deposit KES 405 or $4 for PayPal')
+}
+
+// WITHDRAW WITH LOGOS + PAYPAL EMAIL
+function openWithdraw(m){currentMethod=m;document.getElementById('withTitle').innerHTML=`<img src="${logoMap[m]}" style="width:24px"> Withdraw ${m}`;
+let body=`<input id="withAmount" type="number" placeholder="Amount">`;
+if(m=='M-Pesa'||m=='Airtel')body+=`<input id="withPhone" placeholder="Phone 07XX XXX">`;
+if(m=='PayPal')body+=`<input id="withEmail" placeholder="PayPal Email Address"><p style="font-size:0.9rem;color:#64748b">1 USD = KES 150</p>`;
+if(m=='Crypto')body+=`<select id="cryptoWalletW"><option>USDT TRC20</option><option>BTC</option><option>ETH</option></select>`;
+document.getElementById('withBody').innerHTML=body;document.getElementById('withdrawModal').classList.add('active')}
+
+const logoMap={'M-Pesa':'https://cdn-icons-png.flaticon.com/512/5968/5968290.png','PayPal':'https://cdn-icons-png.flaticon.com/512/5968/5968705.png','Airtel':'https://cdn-icons-png.flaticon.com/512/5968/5968709.png','Crypto':'https://cdn-icons-png.flaticon.com/512/5968/5968260.png'}
+function submitWithdraw(){
+  let amt=parseFloat(document.getElementById('withAmount').value);
+  if(currentMethod=='PayPal'||currentMethod=='Crypto'){ amt = amt * 150 } // Convert USD to KES
+  if(amt>=650&&amt<=bal){bal-=amt;addHist(`Withdrew KES ${amt.toLocaleString()} via ${currentMethod}`);update();closeModal();scrollTo('graph')}else alert('Insufficient balance or below min') // SCROLL TO GRAPH AFTER WITHDRAW
+}
+
+function update(){document.getElementById('bal').innerText='KES '+bal.toLocaleString();document.getElementById('active').innerText=active;document.getElementById('earned').innerText='KES '+earned.toLocaleString();localStorage.setItem('bal',bal)}
+function addHist(t){hist.unshift(t+' - '+new Date().toLocaleTimeString());document.getElementById('hist').innerHTML=hist.map(h=>`<p style="padding:8px;border-bottom:1px solid #f1f5f9">${h}</p>`).join('')}
+
+chart=LightweightCharts.createChart(document.getElementById('liveChart'),{width:document.getElementById('liveChart').clientWidth,height:300,layout:{textColor:'#1e293b'}});
+series=chart.addAreaSeries({lineColor:'#3b82f6',topColor:'rgba(59,130,246,0.4)',bottomColor:'rgba(59,130,246,0)'});series.setData([{time:0,value:0}]);update();
+</script></body></html>
