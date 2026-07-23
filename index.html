@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvestPesa.com</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:#081321;
+color:#fff;
+overflow:hidden;
+}
+
+/* Hero Background */
+.hero{
+height:100vh;
+background:
+linear-gradient(rgba(5,15,35,.75),rgba(5,15,35,.80)),
+url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80");
+background-size:cover;
+background-position:center;
+position:relative;
+}
+
+/* Navigation */
+.navbar{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+padding:20px 8%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+z-index:1000;
+}
+
+.logo{
+font-size:34px;
+font-weight:700;
+color:#00ff88;
+}
+
+.logo span{
+color:#fff;
+}
+
+/* Hamburger Menu */
+.menu-icon{
+font-size:36px;
+cursor:pointer;
+user-select:none;
+}
+
+/* Dropdown */
+.dropdown{
+display:none;
+position:absolute;
+top:80px;
+right:8%;
+width:220px;
+background:rgba(10,20,40,.95);
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 10px 25px rgba(0,0,0,.4);
+}
+
+.dropdown a{
+display:block;
+padding:16px 20px;
+color:#fff;
+text-decoration:none;
+font-weight:500;
+border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.dropdown a:hover{
+background:#00ff88;
+color:#000;
+}
+
+/* Hero Text */
+.content{
+position:absolute;
+top:50%;
+left:8%;
+transform:translateY(-50%);
+max-width:600px;
+}
+
+.content h3{
+color:#00ff88;
+letter-spacing:3px;
+margin-bottom:10px;
+}
+
+.content h1{
+font-size:65px;
+margin-bottom:20px;
+}
+
+.content p{
+line-height:1.8;
+font-size:18px;
+margin-bottom:30px;
+}
+
+.btn{
+display:inline-block;
+padding:15px 38px;
+background:#00ff88;
+color:#000;
+text-decoration:none;
+font-weight:bold;
+border-radius:40px;
+}
+
+.graph{
+position:absolute;
+right:5%;
+bottom:60px;
+width:500px;
+height:260px;
+border:2px dashed rgba(0,255,136,.4);
+border-radius:20px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:22px;
+color:#00ff88;
+}
+
+</style>
+</head>
+
+<body>
+
+<section class="hero">
+
+<header class="navbar">
+
+<div class="logo">
+Invest<span>Pesa</span>.com
+</div>
+
+<div class="menu-icon" onclick="toggleMenu()">
+☰
+</div>
+
+<div class="dropdown" id="menu">
+
+<a href="#">Getting Started</a>
+<a href="#">About Us</a>
+<a href="#">Our Solutions</a>
+
+</div>
+
+</header>
+
+<div class="content">
+
+<h3>WELCOME TO</h3>
+
+<h1>Invest<span>Pesa</span>.com</h1>
+
+<p>
+Grow your wealth with secure investments, real-time trading insights,
+fast withdrawals and professional financial solutions.
+</p>
+
+<a href="#" class="btn">Start Investing</a>
+
+</div>
+
+<div class="graph">
+📈 Live Forex Chart
+</div>
+
+</section>
+
+<script>
+function toggleMenu(){
+const menu=document.getElementById("menu");
+menu.style.display=(menu.style.display==="block")?"none":"block";
+}
+</script>
+
+</body>
+  </html>
