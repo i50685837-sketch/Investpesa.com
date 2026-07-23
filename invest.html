@@ -1,0 +1,9 @@
+<!DOCTYPE html><html><head><title>Invest</title><style>body{padding:20px;font-family:Arial}table{width:100%}td,th{padding:10px;border-bottom:1px solid #eee}</style></head>
+<body><h2>📈 Investment Plans</h2><p>32% Profit in 3 Hours</p>
+<table id="tbl"></table><a href="dashboard.html">← Back</a>
+<script>
+const plans=[[650,210],[1000,320],[5000,1600],[20000,6400]];let html='';
+plans.forEach(p=>{html+=`<tr><td>KES ${p[0]}</td><td class="green">+${p[1]}</td><td><button onclick="invest(${p[0]},${p[1]})">Invest</button></td></tr>`})
+document.getElementById('tbl').innerHTML=html;
+function invest(a,p){let bal=parseInt(localStorage.getItem('bal'))||0;if(a>bal){alert('Low balance');return}localStorage.setItem('bal',bal-a);alert(`Invested KES ${a}. Profit in 3hrs`)}
+</script></body></html>
