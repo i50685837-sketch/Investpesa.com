@@ -1,0 +1,30 @@
+import { kv } from '@vercel/kv';
+
+export async function getUser(email) {
+  return await kv.get(`user:${email}`);
+}
+
+export async function createUser(email, name, phone) {
+  const user = { email, name, phone, balance: 0, earned: 0, created_at: new Date() };
+  await kv.set(`user:${email}`, user);
+  return user;
+}
+
+export async function updateUser(email, data) {
+  const user = await getUser(email);
+  const updated = { ...user, ...data };
+  await kv.set(`user:${email}`, updated);
+  return updated;
+}
+
+export async function addTransaction(email, tx) {
+  const key = `tx:${email}`;
+  const txs = await kv.get(key) || [];
+  txs.unshift({ ...tx, id: 'TX' + Date.now(), time: new Date().toLocaleString() });
+  await kv.set(key, txs);
+  return txs;
+}
+
+export async function getTransactions(email) {
+  return await kv.get(`tx:${email}`) || [];
+}
