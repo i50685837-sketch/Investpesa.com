@@ -29,6 +29,7 @@
     .btn-deposit { background: #16a34a; }
     .btn-withdraw { background: #ef4444; }
     .btn-invest { background: #3b82f6; }
+    
 
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
     .card { background: white; padding: 18px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #3b82f6; }
@@ -426,4 +427,199 @@
       let balance = getBalance();
       if(!amount || amount < 405) { alert('Minimum withdraw is KES 405'); return; }
       if(amount > balance) { alert('Insufficient balance'); return; }
-  
+     
+        <script>
+    let activeInvestments = 0;
+    let totalEarned = 0;
+    let transactions = [];
+    let selectedPlan = null;
+    let investmentTimer = null;
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('active');
+      document.getElementById('overlay').classList.toggle('active');
+    }
+    function closeMenu() {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('overlay').classList.remove('active');
+    }
+    function scrollToSection(id) {
+      document.getElementById(id).scrollIntoView();
+      closeMenu();
+    }
+
+    // INVESTMENT PLANS 650 TO 20000
+    const plans = [
+      {amount: 650, profit: 210}, {amount: 1000, profit: 320}, {amount: 1500, profit: 480},
+      {amount: 2000, profit: 640}, {amount: 3000, profit: 960}, {amount: 5000, profit: 1600},
+      {amount: 7000, profit: 2240}, {amount: 10000, profit: 3200}, {amount: 15000, profit: 4800},
+      {amount: 20000, profit: 6400},
+    ];
+
+    const grid = document.getElementById('plansGrid');
+    plans.forEach((p, i) => {
+      grid.innerHTML += `
+        <div class="plan-card" id="plan-${i}" onclick="selectPlan(${i}, ${p.amount}, ${p.profit})">
+          <h3>Plan ${i+1} 🔥</h3>
+          <p><b>Invest:</b> KES ${p.amount.toLocaleString()}</p>
+          <p class="green"><b>Profit:</b> KES ${p.profit.toLocaleString()} in 3hrs</p>
+          <p><b>Total Return:</b> KES ${(p.amount + p.profit).toLocaleString()}</p>
+        </div>
+      `;
+    });
+
+    function selectPlan(i, amount, profit) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById(`plan-${i}`).classList.add('selected');
+      document.getElementById('investAmount').value = amount;
+      selectedPlan = {amount, profit, i};
+    }
+
+    function investNow() {
+      if(!selectedPlan) { alert('Please select an investment plan first'); return; }
+      let amount = selectedPlan.amount;
+      let profit = selectedPlan.profit;
+      let balance = getBalance();
+      if(amount > balance) { alert('Insufficient balance. Deposit first'); return; }
+      
+      updateBalance(-amount);
+      activeInvestments++;
+      updateStats();
+      document.getElementById('investBtnContainer').innerHTML = `<button class="verified-btn">✅ Verified - Investment Active</button>`;
+      
+      let time = 10800; // 3 HOURS = 10800 seconds. For testing use 30
+      startTimer(time, amount, profit);
+      addTransaction('Invest', '3hr Plan', -amount);
+    }
+
+    function startTimer(seconds, amount, profit) {
+      let timerContainer = document.getElementById('timerContainer');
+      timerContainer.innerHTML = `<div class="timer-box" id="countdown">Time Left: 03:00:00</div>`;
+      investmentTimer = setInterval(() => {
+        let h = Math.floor(seconds / 3600);
+        let m = Math.floor((seconds % 3600) / 60);
+        let s = seconds % 60;
+        document.getElementById('countdown').innerText = `Time Left: ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        seconds--;
+        if(seconds < 0) {
+          clearInterval(investmentTimer);
+          timerContainer.innerHTML = `<div class="timer-box" style="background:#f0fdf4;border-color:#16a34a;color:#16a34a;">✅ Completed! Profit Credited</div>`;
+          totalEarned += profit;
+          updateBalance(amount + profit);
+          activeInvestments--;
+          updateStats();
+          addTransaction('Profit', '3hr Plan', profit);
+          document.getElementById('investBtnContainer').innerHTML = `<button class="btn-invest-submit" onclick="investNow()">Invest Again</button>`;
+          document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+          document.getElementById('investAmount').value = '';
+          selectedPlan = null;
+        }
+      }, 1000);
+    }
+
+    // TABS
+    function showDeposit(method) {
+      document.querySelectorAll('#deposit .method-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#deposit .form-section').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('deposit-' + method).classList.add('active');
+    }
+    function showWithdraw(method) {
+      document.querySelectorAll('#withdraw .method-tab').forEach(t => t.classList.remove('withdraw-active'));
+      document.querySelectorAll('#withdraw .form-section').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('withdraw-active');
+      document.getElementById('withdraw-' + method).classList.add('active');
+    }
+
+    // DEPOSIT ALL 4 METHODS
+    function depositMpesa() {
+      let phone = document.getElementById('mpesaPhone').value;
+      let amount = parseInt(document.getElementById('mpesaAmount').value);
+      if(!phone || phone.length < 10) { alert('Enter valid phone number'); return; }
+      if(!amount || amount < 405) { alert('Minimum deposit is KES 405'); return; }
+      alert(`STK Push sent to ${phone} for KES ${amount}`);
+      updateBalance(amount);
+      addTransaction('Deposit', 'M-Pesa', amount);
+    }
+    function depositPaypal() {
+      let email = document.getElementById('depositPaypalEmail').value;
+      let amount = parseFloat(document.getElementById('depositPaypalAmount').value);
+      if(!email || !email.includes('@')) { alert('Enter valid PayPal email'); return; }
+      if(!amount || amount < 4) { alert('Minimum deposit is $4'); return; }
+      let kesAmount = amount * 150;
+      alert(`Redirecting to PayPal for $${amount}`);
+      updateBalance(kesAmount);
+      addTransaction('Deposit', 'PayPal', kesAmount);
+    }
+    function depositCrypto() {
+      let amount = parseFloat(document.getElementById('cryptoAmount').value);
+      if(!amount || amount < 10) { alert('Minimum deposit is $10'); return; }
+      alert(`Send $${amount} USDT TRC20 to: TQxxxxxWalletAddress`);
+      let kesAmount = amount * 150;
+      updateBalance(kesAmount);
+      addTransaction('Deposit', 'Crypto', kesAmount);
+    }
+    function depositAirtel() {
+      let phone = document.getElementById('airtelPhone').value;
+      let amount = parseInt(document.getElementById('airtelAmount').value);
+      if(!phone || phone.length < 10) { alert('Enter valid Airtel number'); return; }
+      if(!amount || amount < 405) { alert('Minimum deposit is KES 405'); return; }
+      alert(`Airtel Money request sent to ${phone} for KES ${amount}`);
+      updateBalance(amount);
+      addTransaction('Deposit', 'Airtel', amount);
+    }
+
+    // WITHDRAW ALL 3 METHODS
+    function withdrawMpesa() {
+      let amount = parseInt(document.getElementById('withdrawMpesaAmount').value);
+      let phone = document.getElementById('withdrawMpesaPhone').value;
+      let balance = getBalance();
+      if(!amount || amount < 405) { alert('Minimum withdraw is KES 405'); return; }
+      if(amount > balance) { alert('Insufficient balance'); return; }
+      alert(`Withdraw request: KES ${amount} to ${phone}`);
+      updateBalance(-amount);
+      addTransaction('Withdraw', 'M-Pesa', -amount);
+    }
+    function withdrawPaypal() {
+      let amount = parseFloat(document.getElementById('withdrawPaypalAmount').value);
+      let email = document.getElementById('withdrawPaypalEmail').value;
+      let balance = getBalance();
+      let kesAmount = amount * 150;
+      if(!amount || amount < 5) { alert('Minimum withdraw is $5'); return; }
+      if(kesAmount > balance) { alert('Insufficient balance'); return; }
+      alert(`Withdraw request: $${amount} to ${email}`);
+      updateBalance(-kesAmount);
+      addTransaction('Withdraw', 'PayPal', -kesAmount);
+    }
+    function withdrawAirtel() {
+      let amount = parseInt(document.getElementById('withdrawAirtelAmount').value);
+      let phone = document.getElementById('withdrawAirtelPhone').value;
+      let balance = getBalance();
+      if(!amount || amount < 405) { alert('Minimum withdraw is KES 405'); return; }
+      if(amount > balance) { alert('Insufficient balance'); return; }
+      alert(`Withdraw request: KES ${amount} to ${phone}`);
+      updateBalance(-amount);
+      addTransaction('Withdraw', 'Airtel', -amount);
+    }
+
+    // BALANCE + HISTORY
+    function getBalance() {
+      return parseInt(document.getElementById('balance').innerText.replace(/[^0-9]/g, '')) || 0;
+    }
+    function updateBalance(amount) {
+      let current = getBalance();
+      let newBal = current + amount;
+      document.getElementById('balance').innerText = 'KES ' + newBal.toLocaleString();
+    }
+    function updateStats() {
+      document.getElementById('activeCount').innerText = activeInvestments;
+      document.getElementById('totalEarned').innerText = 'KES ' + totalEarned.toLocaleString();
+    }
+    function addTransaction(type, method, amount) {
+      transactions.unshift({type, method, amount, time: new Date().toLocaleString()});
+      let html = transactions.map(t => 
+        `<p style="padding:8px;border-bottom:1px solid #f1f5f9;"><b>${t.type}</b> - ${t.method} - <span class="${t.amount>0?'green':'red'}">KES ${Math.abs(t.amount).toLocaleString()}</span> - ${t.time}</p>`
+      ).join('');
+      document.getElementById('historyList').innerHTML = html; // REMOVED "NO"
+    }
+</script>
